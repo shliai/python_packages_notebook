@@ -423,5 +423,3 @@ alembic downgrade -1
 - 实践：最佳实践与常见问题
 
 通过学习这些内容，你可以使用 SQLAlchemy 高效地操作数据库。建议继续学习 SQLAlchemy Core、性能优化等高级特性。
-
-需要我帮你**生成一个完整的 SQLAlchemy 项目模板**吗？
