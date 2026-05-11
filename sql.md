@@ -1,4 +1,4 @@
-# SQL 完整教程
+# SQL 教程
 SQL（Structured Query Language，结构化查询语言）是关系型数据库的标准操作语言，用于数据的增删改查、数据库结构管理和权限控制。本教程以 **MySQL 8.0** 为主，兼顾 PostgreSQL、SQLite 等主流数据库的差异，从基础到进阶全面讲解 SQL 核心知识。
 
 ---
