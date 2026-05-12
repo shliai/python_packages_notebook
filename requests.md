@@ -1,262 +1,250 @@
-# Python requests 模块 完整教程
-`requests` 是 Python 最流行、最简单的 HTTP 请求库，用于发送网络请求、爬取网页、调用接口、上传下载文件等。
-
-## 目录
-1. 安装与导入
-2. 发送请求（GET / POST / PUT / DELETE 等）
-3. 响应对象属性与方法
-4. 请求参数（headers / params / data / json / cookies）
-5. 文件上传与下载
-6. 会话保持（Session）
-7. 超时、代理、SSL 验证
-8. 异常处理
-9. 实战案例合集
-
----
-
-# 1. 安装与导入
+# Python Requests 完整教程
+## 一、安装模块
 ```bash
 pip install requests
 ```
 
-```python
-import requests
-```
-
----
-
-# 2. 发送请求
-## GET 请求（最常用）
+## 二、快速入门
 ```python
 import requests
 
-response = requests.get('https://www.baidu.com')
+# 发送GET请求
+response = requests.get("https://httpbin.org/get")
+# 打印响应内容
 print(response.text)
 ```
 
-带参数 GET：
+## 三、七大 HTTP 请求方法
+### 1. GET 请求
+用于**获取数据**，使用 `params` 传递 URL 参数。
 ```python
-params = {'wd': 'python'}
-response = requests.get('https://www.baidu.com/s', params=params)
+import requests
+
+url = "https://httpbin.org/get"
+# 拼接url参数 ?name=张三&age=20
+params = {
+    "name": "张三",
+    "age": 20
+}
+response = requests.get(url, params=params)
+
+print("完整请求地址：", response.url)
+print("响应内容：", response.text)
 ```
 
-## POST 请求
-表单格式：
+### 2. POST 请求
+用于**提交数据**，支持表单、JSON 两种传参方式。
+
+#### 表单传参 data
 ```python
-data = {'username': 'admin', 'password': '123456'}
-response = requests.post('https://httpbin.org/post', data=data)
-```
-
-JSON 格式：
-```python
-json_data = {'name': 'test', 'age': 18}
-response = requests.post('https://httpbin.org/post', json=json_data)
-```
-
-## 其他 HTTP 方法
-```python
-requests.put('https://httpbin.org/put', data={'key':'a'})
-requests.delete('https://httpbin.org/delete')
-requests.head('https://httpbin.org/get')
-requests.patch('https://httpbin.org/patch', data={'key':'b'})
-requests.options('https://httpbin.org/get')
-```
-
-通用写法：
-```python
-response = requests.request('GET', 'https://www.baidu.com')
-```
-
----
-
-# 3. 响应对象属性与方法（完整版）
-```python
-response = requests.get('https://httpbin.org/get')
-```
-
-| 属性/方法 | 说明 |
-|---------|------|
-| `response.status_code` | 状态码（200=成功） |
-| `response.reason` | 状态描述（OK / Not Found） |
-| `response.text` | 字符串内容 |
-| `response.content` | 字节内容（图片/文件） |
-| `response.json()` | 解析 JSON（返回字典） |
-| `response.headers` | 响应头 |
-| `response.cookies` | 响应 Cookie |
-| `response.url` | 最终请求 URL |
-| `response.encoding` | 编码 |
-| `response.apparent_encoding` | 自动识别编码 |
-| `response.ok` | 状态码 <400 返回 True |
-| `response.raise_for_status()` | 状态码错误抛出异常 |
-| `response.elapsed` | 请求耗时 |
-| `response.history` | 重定向历史 |
-| `response.is_redirect` | 是否重定向 |
-
-示例：
-```python
-print(response.status_code)
-print(response.reason)
-print(response.url)
+url = "https://httpbin.org/post"
+data = {
+    "username": "admin",
+    "password": "123456"
+}
+response = requests.post(url, data=data)
 print(response.json())
 ```
 
----
-
-# 4. 请求参数（完整版）
-## 4.1 请求头 headers
+#### JSON 传参 json
 ```python
-headers = {
-    'User-Agent': 'Mozilla/5.0',
-    'Referer': 'https://www.baidu.com',
-    'Content-Type': 'application/json'
+url = "https://httpbin.org/post"
+json_data = {
+    "title": "Python教程",
+    "price": 99
 }
-
-response = requests.get('https://httpbin.org/get', headers=headers)
-```
-
-## 4.2 URL 参数 params
-```python
-params = {'page': 1, 'size': 10}
-response = requests.get('https://httpbin.org/get', params=params)
-```
-
-## 4.3 表单数据 data
-```python
-data = {'user': 'test', 'pwd': '123'}
-response = requests.post(url, data=data)
-```
-
-## 4.4 JSON 数据 json
-```python
-json_data = {'name': 'test'}
 response = requests.post(url, json=json_data)
+print(response.json())
 ```
 
-## 4.5 携带 Cookies
+### 3. 其他请求方式
 ```python
-cookies = {'token': '123456'}
-response = requests.get(url, cookies=cookies)
+# PUT：全量更新数据
+requests.put("https://httpbin.org/put", data={"k1":"v1"})
+
+# PATCH：局部更新数据
+requests.patch("https://httpbin.org/patch", json={"k1":100})
+
+# DELETE：删除资源
+requests.delete("https://httpbin.org/delete")
+
+# HEAD：只获取响应头，不获取响应体
+requests.head("https://httpbin.org/get")
+
+# OPTIONS：查询服务器支持的请求方法
+requests.options("https://httpbin.org/get")
 ```
 
----
-
-# 5. 文件上传与下载
-## 5.1 文件上传
+### 4. 通用请求方法
+`requests.request()` 可以适配任意请求方式
 ```python
-files = {
-    'file': ('test.jpg', open('test.jpg', 'rb'), 'image/jpeg')
+import requests
+
+# GET
+res1 = requests.request("GET", "https://httpbin.org/get")
+# POST
+res2 = requests.request("POST", "https://httpbin.org/post", json={"a": 1})
+```
+
+## 四、Response 响应对象详解
+```python
+response = requests.get("https://httpbin.org/get")
+```
+
+| 属性/方法 | 作用说明 |
+| ---- | ---- |
+| `response.status_code` | HTTP 状态码 200/404/500 |
+| `response.reason` | 状态文字描述 OK / Not Found |
+| `response.text` | 字符串格式响应内容 |
+| `response.content` | 二进制字节内容（图片、文件专用） |
+| `response.json()` | 解析 JSON 数据，返回字典/列表 |
+| `response.headers` | 响应头信息 |
+| `response.cookies` | 服务器返回的 Cookie |
+| `response.url` | 最终请求的完整 URL |
+| `response.encoding` | 当前编码格式 |
+| `response.apparent_encoding` | 自动检测真实编码 |
+| `response.ok` | 状态码小于400返回True，否则False |
+| `response.raise_for_status()` | 状态码异常自动抛出异常 |
+
+示例：
+```python
+import requests
+
+res = requests.get("https://httpbin.org/get")
+print("状态码：", res.status_code)
+print("状态描述：", res.reason)
+print("编码：", res.apparent_encoding)
+print("JSON解析：", res.json())
+```
+
+## 五、常用请求参数
+### 1. 请求头 headers
+伪装浏览器，绕过基础反爬
+```python
+import requests
+
+url = "https://httpbin.org/headers"
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Referer": "https://www.baidu.com"
 }
-response = requests.post('https://httpbin.org/post', files=files)
+res = requests.get(url, headers=headers)
+print(res.json())
 ```
 
-## 5.2 文件下载
+### 2. 携带 Cookies
+访问需要登录态的接口
 ```python
-response = requests.get('https://www.baidu.com/logo.jpg', stream=True)
-with open('logo.jpg', 'wb') as f:
-    for chunk in response.iter_content(chunk_size=1024):
-        f.write(chunk)
+import requests
+
+url = "https://httpbin.org/cookies"
+cookies = {
+    "token": "abc123456",
+    "user": "admin"
+}
+res = requests.get(url, cookies=cookies)
+print(res.json())
 ```
 
----
-
-# 6. 会话保持 Session
+### 3. 超时设置 timeout
+防止请求卡死，单位秒
 ```python
-session = requests.Session()
+# 整体超时5秒
+res = requests.get("https://httpbin.org/delay/3", timeout=5)
 
-# 登录
-session.post('https://xxx.com/login', data={'user':'admin','pwd':'123'})
-
-# 自动携带 Cookie
-response = session.get('https://xxx.com/user')
+# 连接超时3秒，读取超时7秒
+res = requests.get("https://httpbin.org/delay/5", timeout=(3,7))
 ```
 
----
-
-# 7. 超时、代理、SSL
-## 超时
-```python
-response = requests.get(url, timeout=5)
-```
-
-## 代理
+### 4. 代理 proxies
+爬虫切换 IP 使用
 ```python
 proxies = {
-    'http': 'http://127.0.0.1:7890',
-    'https': 'http://127.0.0.1:7890'
+    "http": "http://127.0.0.1:7890",
+    "https": "http://127.0.0.1:7890"
 }
-response = requests.get(url, proxies=proxies)
+res = requests.get("https://httpbin.org/ip", proxies=proxies)
+print(res.json())
 ```
 
-## 关闭 SSL 验证
+### 5. 关闭 SSL 证书验证
+访问自签名 HTTPS 网站
 ```python
-response = requests.get(url, verify=False)
+res = requests.get("https://xxx.com", verify=False)
 ```
 
----
-
-# 8. 异常处理
+## 六、Session 会话保持
+自动**保存、携带 Cookie**，适合模拟登录后连续请求
 ```python
+import requests
+
+# 创建会话对象
+session = requests.Session()
+
+# 登录（会话自动记录cookie）
+session.post("https://httpbin.org/cookies/set/user/admin")
+
+# 后续请求自动携带cookie
+res = session.get("https://httpbin.org/cookies")
+print(res.json())
+
+# 关闭会话
+session.close()
+```
+
+## 七、文件上传与下载
+### 1. 文件上传
+```python
+import requests
+
+url = "https://httpbin.org/post"
+files = {
+    "file": ("test.txt", open("test.txt", "rb"), "text/plain")
+}
+res = requests.post(url, files=files)
+print(res.json())
+```
+
+### 2. 文件下载
+流式下载，避免大文件占用内存
+```python
+import requests
+
+url = "https://httpbin.org/image/png"
+res = requests.get(url, stream=True)
+
+with open("test.png", "wb") as f:
+    # 分块写入
+    for chunk in res.iter_content(chunk_size=1024):
+        if chunk:
+            f.write(chunk)
+print("下载完成")
+```
+
+## 八、异常处理
+捕获网络超时、连接失败、请求异常
+```python
+import requests
 from requests.exceptions import Timeout, ConnectionError, RequestException
 
 try:
-    response = requests.get(url, timeout=3)
-    response.raise_for_status()
+    res = requests.get("https://httpbin.org/get", timeout=3)
+    # 状态码非2xx直接抛异常
+    res.raise_for_status()
 except Timeout:
-    print("超时")
+    print("请求超时")
 except ConnectionError:
-    print("网络错误")
+    print("网络连接失败")
 except RequestException as e:
-    print("请求失败", e)
+    print("请求异常：", e)
+else:
+    print("请求成功")
 ```
 
----
-
-# 9. 实战案例合集
-## 案例1：爬取网页
-```python
-import requests
-headers = {'User-Agent': 'Mozilla/5.0'}
-res = requests.get('https://www.baidu.com', headers=headers)
-print(res.text)
-```
-
-## 案例2：调用 JSON API
-```python
-res = requests.get('https://httpbin.org/get')
-data = res.json()
-print(data)
-```
-
-## 案例3：模拟登录
-```python
-session = requests.Session()
-login_data = {'username': 'admin', 'password': '123456'}
-session.post('https://xxx.com/login', data=login_data)
-res = session.get('https://xxx.com/profile')
-```
-
-## 案例4：上传文件
-```python
-files = {'file': open('a.txt','rb')}
-res = requests.post('https://httpbin.org/post', files=files)
-```
-
-## 案例5：下载图片
-```python
-res = requests.get('https://xxx.com/a.jpg', stream=True)
-with open('a.jpg','wb') as f:
-    f.write(res.content)
-```
-
----
-
-这份教程包含：
-- 安装导入
-- GET/POST/PUT/DELETE 所有请求
-- 响应对象全部属性
-- headers / params / data / json / cookies
-- 文件上传下载
-- Session 会话
-- 超时、代理、SSL
-- 异常处理
-- 实战案例
+## 九、最佳实践
+1. 频繁请求同一域名，优先使用 `Session` 会话；
+2. 所有请求必须加 `timeout`，防止程序卡死；
+3. 爬虫必须配置 `User-Agent` 请求头伪装浏览器；
+4. 图片、文件下载使用 `stream=True` 流式读取；
+5. 接口请求优先用 `raise_for_status()` 校验状态码；
+6. 传递 JSON 参数直接用 `json=`，不要手动拼接字典。
